@@ -7,58 +7,124 @@
 <title>OUR-RULES</title>
 
 <style>
+:root{
+  --bg: #f3f5ff;
+  --bg-2: #eefaf3;
+  --card: rgba(255,255,255,0.9);
+  --line: #e5e7f3;
+  --text: #1f2937;
+  --muted: #667085;
+  --primary: #5a67f2;
+  --primary-strong: #3d4de6;
+  --green: #22a06b;
+  --green-soft: #dff8ee;
+  --red: #ef4444;
+  --red-soft: #ffe4e6;
+  --amber: #f59e0b;
+  --shadow: 0 12px 30px rgba(90, 103, 242, 0.12);
+}
 *{box-sizing:border-box;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif}
-body{margin:0;padding:16px;background:#f6f7fb;color:#222}
-h1{text-align:center;color:#16c60c;letter-spacing:2px;margin:8px 0;border-bottom:3px solid #e33;display:inline-block;padding-bottom:4px}
+body{
+  margin:0;
+  min-height:100vh;
+  padding:22px 16px 40px;
+  background:linear-gradient(135deg,var(--bg) 0%, var(--bg-2) 100%);
+  color:var(--text);
+}
+.page-shell{max-width:1120px;margin:0 auto}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;margin:0 auto 18px;max-width:980px;
+}
+.badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:8px 14px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:1.5px;
+  background:#fff;color:var(--primary);border:1px solid rgba(90,103,242,0.2);box-shadow:var(--shadow);
+}
+.badge.alt{background:linear-gradient(135deg,#ebfff3,#e8f1ff);color:#156c43}
+h1{
+  text-align:center;color:#1c9f1e;letter-spacing:3px;margin:0;
+  font-size:clamp(2.1rem,4vw,3rem);font-weight:900;
+  text-shadow:0 6px 20px rgba(28,159,30,0.16);
+}
 .center{text-align:center}
-.card{background:#fff;border-radius:12px;padding:14px;margin:12px auto;max-width:920px;box-shadow:0 1px 4px #0001}
+.card{
+  background:var(--card);
+  border:1px solid rgba(255,255,255,0.75);
+  border-radius:18px;padding:16px 18px;margin:18px auto;max-width:980px;
+  box-shadow:var(--shadow);backdrop-filter:blur(8px);
+}
 .card h3{margin:0 0 8px;font-size:16px}
-.sub{font-size:12px;color:#777;margin-bottom:8px}
-.tab{padding:8px 18px;border:2px solid #4a63e7;background:#fff;color:#4a63e7;border-radius:20px;cursor:pointer;font-weight:700}
-.tab.on{background:#4a63e7;color:#fff}
-.days{display:flex;flex-wrap:wrap;gap:4px}
-.day{position:relative;width:40px;height:44px;border:1px solid #ddd;border-radius:8px;background:#fafafa;cursor:pointer;font-size:11px;line-height:1.15;padding:2px;text-align:center;user-select:none}
-.day.ok{background:#d7f7d5;border-color:#39b54a}
-.day.no{background:#ffd9d9;border-color:#e33}
-.day.skip{background:#ececec;border-color:#aaa;color:#888}
-.day.today{box-shadow:0 0 0 2px #f0a500}
-.day b{display:block;font-size:12px}
-.day i{position:absolute;top:0;right:2px;font-style:normal;font-size:9px;color:#4a63e7}
-.row{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;align-items:center}
-input,button,select{padding:8px;border-radius:8px;border:1px solid #ccc;font-size:14px}
-button.add{background:#4a63e7;color:#fff;border:0;cursor:pointer}
-button.mini{padding:2px 8px;font-size:12px;cursor:pointer;border:1px solid #bbb;background:#fff}
-ul{list-style:none;padding:0;margin:6px 0}
-li{display:flex;justify-content:space-between;gap:8px;padding:6px 8px;background:#f3f4f9;border-radius:8px;margin-bottom:4px;font-size:14px;align-items:center}
-li.ex{opacity:.5;background:#ececec}
-li .del{background:#e33;color:#fff;border:0;padding:2px 8px;cursor:pointer;border-radius:6px}
-.fine{float:right;font-weight:700;color:#e33}
+.sub{font-size:12px;color:var(--muted);margin-bottom:8px}
+.toolbar{margin-top:0}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;align-items:center}
+.row label{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--muted)}
+.tab{
+  padding:10px 18px;border:2px solid var(--primary);background:#fff;color:var(--primary);
+  border-radius:999px;cursor:pointer;font-weight:800;transition:.2s ease;
+}
+.tab:hover{transform:translateY(-1px)}
+.tab.on{background:linear-gradient(135deg,var(--primary),var(--primary-strong));color:#fff;box-shadow:0 8px 18px rgba(90,103,242,0.22)}
+.days{display:flex;flex-wrap:wrap;gap:6px}
+.day{position:relative;width:46px;height:48px;border:1px solid #dfe5f4;border-radius:12px;background:#fafbff;cursor:pointer;font-size:11px;line-height:1.2;padding:2px;text-align:center;user-select:none;transition:transform .15s ease}
+.day:hover{transform:translateY(-1px)}
+.day.ok{background:var(--green-soft);border-color:#46b272}
+.day.no{background:var(--red-soft);border-color:#f87171}
+.day.skip{background:#f3f4f6;border-color:#a1a1aa;color:#666}
+.day.today{box-shadow:0 0 0 2px rgba(245,158,11,0.8)}
+.day b{display:block;font-size:13px;font-weight:800;margin-top:4px}
+.day i{position:absolute;top:2px;right:4px;font-style:normal;font-size:9px;color:var(--primary)}
+input,button,select{padding:9px 10px;border-radius:10px;border:1px solid #d7dcea;font-size:14px}
+input:focus{outline:2px solid rgba(90,103,242,0.15);border-color:var(--primary)}
+button.add{background:linear-gradient(135deg,var(--primary),var(--primary-strong));color:#fff;border:0;cursor:pointer;padding:10px 16px;font-weight:700}
+button.mini{padding:4px 8px;font-size:12px;cursor:pointer;border:1px solid #cbd5e1;background:#fff}
+button{transition:all .15s ease}
+button:hover{filter:brightness(0.98)}
+ul{list-style:none;padding:0;margin:8px 0}
+li{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;background:#f8f9ff;border:1px solid #edf0ff;border-radius:12px;margin-bottom:6px;font-size:14px;align-items:center}
+li.ex{opacity:.7;background:#f5f5f5;border-color:#e5e7eb}
+li .del{background:linear-gradient(135deg,#ff6b6b,#e53935);color:#fff;border:0;padding:4px 8px;cursor:pointer;border-radius:8px}
+.fine{float:right;font-weight:800;color:#d62b2b}
 table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{border-bottom:1px solid #eee;padding:8px;text-align:left}
+th,td{border-bottom:1px solid #edf0f7;padding:10px 8px;text-align:left}
 td.num,th.num{text-align:right}
-tr.total td{font-size:18px;font-weight:800;color:#e33;border-top:2px solid #333}
-.warn{color:#e67e00;font-size:12px;margin-top:6px}
-.notes{font-size:12px;color:#555;background:#f7f7fb;border-radius:8px;padding:6px 8px;margin-top:6px}
-.wk{font-size:12px;color:#555;display:flex;gap:8px;align-items:center;margin:2px 0}
+tr.total td{font-size:18px;font-weight:900;color:#d62b2b;border-top:2px solid #1f2937}
+.warn{color:#d97706;font-size:12px;margin-top:6px;font-weight:700}
+.notes{font-size:12px;color:#4b5563;background:#f7f8fc;border:1px solid #eef1fa;border-radius:10px;padding:8px 10px;margin-top:8px}
+.wk{font-size:12px;color:#485366;display:flex;gap:8px;align-items:center;justify-content:space-between;margin:6px 0;padding:8px 10px;border:1px solid #edf0f7;border-radius:10px;background:#fbfcff;flex-wrap:wrap}
+.footer-actions{margin:18px auto 0;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.footer-actions button{padding:10px 16px;border:1px solid #d7dcea;background:#fff;color:#1f2937;font-weight:700;cursor:pointer;border-radius:10px}
+.footer-actions button:first-child{background:linear-gradient(135deg,#eff6ff,#e0f2fe);border-color:#bfdcff;color:#1d4ed8}
 </style>
 </head>
 <body>
-<div class="center"><h1>OUR-RULES</h1></div>
+<div class="page-shell">
+  <header class="topbar">
+    <div class="badge">MISSION</div>
+    <h1>OUR RULES</h1>
+    <div class="badge alt">WITH MY GF</div>
+  </header>
 
-<div class="card">
-  <div class="row" style="justify-content:center">
-    <label>เดือน <input type="month" id="ym"></label>
-    <button class="tab on" data-p="tai">น้องต่าย</button>
-    <button class="tab" data-p="ben">พี่เบ้น</button>
+  <div class="card toolbar">
+    <div class="row" style="justify-content:center">
+      <label>เดือน <input type="month" id="ym"></label>
+      <button class="tab on" data-p="tai">น้องต่าย</button>
+      <button class="tab" data-p="ben">พี่เบ้บ</button>
+    </div>
+    <div class="sub center">แตะช่องวันเพื่อวนสถานะ • แตะสองครั้ง (ดับเบิลคลิก) เพื่อใส่/แก้หมายเหตุ</div>
   </div>
-  <div class="sub center">แตะช่องวันเพื่อวนสถานะ • แตะสองครั้ง (ดับเบิลคลิก) เพื่อใส่/แก้หมายเหตุ</div>
-</div>
 
-<div id="app"></div>
-<div class="card"><h3>สรุปค่าปรับเดือนนี้</h3><div id="sum"></div></div>
-<div class="center" style="margin-bottom:24px">
-  <button onclick="expJSON()">สำรองข้อมูล</button>
-  <button onclick="if(confirm('ล้างข้อมูลเดือนนี้?')){S=blank();save();render()}">ล้างข้อมูลเดือนนี้</button>
+  <div id="app"></div>
+
+  <div class="card">
+    <h3>สรุปค่าปรับเดือนนี้</h3>
+    <div id="sum"></div>
+  </div>
+
+  <div class="footer-actions">
+    <button onclick="expJSON()">สำรองข้อมูล</button>
+    <button onclick="if(confirm('ล้างข้อมูลเดือนนี้?')){S=blank();save();render()}">ล้างข้อมูลเดือนนี้</button>
+  </div>
 </div>
 
 <script>
@@ -77,7 +143,9 @@ const blank=()=>({tai:mk(),ben:mk()});
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 
 const ymEl=document.getElementById('ym');
-ymEl.value=new Date().toISOString().slice(0,7);
+const now=new Date();
+const localMonth=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+ymEl.value=localMonth;
 let P='tai',S=load();
 
 function key(){return 'ourrules_'+ymEl.value}
@@ -152,7 +220,7 @@ function render(){
       h+='</div>';
       const ns=[];for(let d=1;d<=D;d++){const c=s[R.id][d];if(c&&c.note)ns.push(d+' '+(c.v==='skip'?'🚫':c.v==='no'?'❌':'✅')+' '+esc(c.note))}
       if(ns.length)h+='<div class="notes">📝 '+ns.join(' • ')+'</div>';
-      h+='<div class="sub">แตะ: – → ✅ → ❌ → 🚫 ยกเว้น • ดับเบิลคลิกใส่หมายเหตุ • วันที่ยังไม่กด = ไม่คิดเงิน</div>';
+      h+='<div class="sub">แตะ: – → ✅ → ❌ → 🚫 ยกเว้น เพื่อใส่หมายเหตุ , วันที่ยังไม่กด = ไม่คิดเงิน</div>';
     } else {
       const ph=R.id==='sweet'?'เช่น โรตี, เค้ก, มันฝรั่งทอด':R.id==='drink'?'เช่น ชาไข่มุก':R.id==='exercise'?'เช่น วิ่ง 20 นาที':'เช่น ผัดผักรวม';
       h+='<div class="row"><input type="date" id="d_'+R.id+'" value="'+defDate()+'">'+
