@@ -299,7 +299,7 @@ function render(){
         const ex=s.exMonth.veggie!==undefined;
         h+='<div class="wk"><span>'+(ex?'🚫 ยกเว้นเป้าเดือนนี้'+(s.exMonth.veggie?' — '+esc(s.exMonth.veggie):''):'นับตามปกติ')+'</span>'+
            '<button class="mini" onclick="exMonth()">'+(ex?'ยกเลิกยกเว้น':'ยกเว้นเดือนนี้')+'</button></div>';
-        if(F[R.id].pend)h+='<div class="warn">⏳ ถ้าจบเดือนยังไม่ครบ จะโดนปรับ '+F[R.id].pend+' ฿</div>';
+        if(F[R.id].pend)h+='<div class="warn">⏳ หากจบเดือนยังไม่ครบ จะโดนปรับ '+F[R.id].pend+' ฿</div>';
       }
     }
     h+='</div>';
