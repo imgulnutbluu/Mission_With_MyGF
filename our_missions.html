@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
-<title>N'Tay & P'Panoy</title>
+<title>OUR-MISSIONS</title>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -16,12 +16,13 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // ทำให้ฟังก์ชันของ Firebase ใช้งานในหน้าเว็บหลักได้
     window.dbRef = ref;
     window.dbSet = set;
     window.dbOnValue = onValue;
     window.db = db;
   </script>
+  <!-- เพิ่ม Library สำหรับวาดกราฟ -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root{
   --bg: #f3f5ff;
@@ -111,6 +112,13 @@ tr.total td{font-size:18px;font-weight:900;color:#d62b2b;border-top:2px solid #1
 .footer-actions{margin:18px auto 0;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
 .footer-actions button{padding:10px 16px;border:1px solid #d7dcea;background:#fff;color:#1f2937;font-weight:700;cursor:pointer;border-radius:10px}
 .footer-actions button:first-child{background:linear-gradient(135deg,#eff6ff,#e0f2fe);border-color:#bfdcff;color:#1d4ed8}
+/* สไตล์สำหรับเมนูสถิติ */
+.nav-bar { display: flex; justify-content: center; gap: 12px; margin: 20px auto; max-width: 980px; }
+.nav-bar button { flex: 1; max-width: 200px; padding: 12px 20px; border-radius: 12px; border: 2px solid #fff; background: var(--card); box-shadow: var(--shadow); font-weight: 800; cursor: pointer; color: var(--muted); transition: all 0.2s; }
+.nav-bar button.active { background: linear-gradient(135deg, var(--primary), var(--primary-strong)); color: #fff; border-color: var(--primary); }
+.timer-card { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #fff; text-align: center; border:none; box-shadow: 0 10px 25px rgba(255, 154, 158, 0.3); }
+.timer-card h2 { font-size: 2.8rem; margin: 8px 0; color: #d62828; text-shadow: 2px 2px 4px rgba(255,255,255,0.5); }
+.timer-card .subtitle { font-size: 14px; font-weight: 700; color: #b5179e; letter-spacing: 1px; }
 </style>
 </head>
 <body>
@@ -120,29 +128,74 @@ tr.total td{font-size:18px;font-weight:900;color:#d62b2b;border-top:2px solid #1
     <div class="badge alt">WITH MY GF</div>
   </header>
 
-  <div class="card toolbar">
-    <div class="row" style="justify-content:center">
-      <label>เดือน <input type="month" id="ym"></label>
-      <button class="tab on" data-p="tai">น้องต่าย</button>
-      <button class="tab" data-p="beb">พี่เบ้บ</button>
+  <!-- วิดเจ็ตนับวัน -->
+  <div class="card timer-card">
+    <div class="subtitle">💖 OUR JOURNEY 💖</div>
+    <h2 id="rel-days">0 วัน</h2>
+    <div class="subtitle" style="font-size: 12px; color: #d62828;">Since 11 Jan 2026</div>
+  </div>
+
+  <!-- แถบเมนูนำทาง -->
+  <div class="nav-bar">
+    <button id="nav-missions" class="active" onclick="switchTab('missions')">📝 ทำภารกิจ</button>
+    <button id="nav-stats" onclick="switchTab('stats')">📊 สถิติรวม</button>
+  </div>
+
+  <!-- ================= หน้าภารกิจ ================= -->
+  <div id="missions-view">
+    <div class="card toolbar">
+      <div class="row" style="justify-content:center">
+        <label>เดือน <input type="month" id="ym"></label>
+        <button class="tab on" data-p="tai">น้องต่าย</button>
+        <button class="tab" data-p="beb">พี่เบ้บ</button>
+      </div>
+      <div class="sub center">แตะช่องวันเพื่อวนสถานะ • แตะสองครั้ง (ดับเบิลคลิก) เพื่อใส่/แก้หมายเหตุ</div>
     </div>
-    <div class="sub center">แตะช่องวันเพื่อวนสถานะ • แตะสองครั้ง (ดับเบิลคลิก) เพื่อใส่/แก้หมายเหตุ</div>
+
+    <div id="app"></div>
+
+    <div class="card">
+      <h3>สรุปค่าปรับเดือนนี้</h3>
+      <div id="sum"></div>
+    </div>
+
+    <div class="footer-actions">
+      <button onclick="expJSON()">สำรองข้อมูล</button>
+      <button onclick="if(confirm('ล้างข้อมูลเดือนนี้?')){S=blank();save();render()}">ล้างข้อมูลเดือนนี้</button>
+    </div>
   </div>
 
-  <div id="app"></div>
-
-  <div class="card">
-    <h3>สรุปค่าปรับเดือนนี้</h3>
-    <div id="sum"></div>
+  <!-- ================= หน้าสถิติ ================= -->
+  <div id="stats-view" style="display: none;">
+    <div class="card">
+      <h3>🏆 สรุปยอดตลอดกาล (All-Time)</h3>
+      <div id="all-time-summary">กำลังโหลดข้อมูล...</div>
+    </div>
+    <div class="card">
+      <h3>📈 กราฟเปรียบเทียบค่าปรับรายเดือน</h3>
+      <canvas id="finesChart"></canvas>
+    </div>
   </div>
 
-  <div class="footer-actions">
-    <button onclick="expJSON()">สำรองข้อมูล</button>
-    <button onclick="if(confirm('ล้างข้อมูลเดือนนี้?')){S=blank();save();render()}">ล้างข้อมูลเดือนนี้</button>
-  </div>
 </div>
 
 <script>
+// คำนวณวันครบรอบ
+const startDate = new Date('2026-01-11T00:00:00');
+const nowMs = new Date();
+const diffMs = nowMs - startDate;
+const relDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+document.getElementById('rel-days').innerText = (relDays >= 0 ? relDays : 0) + ' วัน';
+
+// ฟังก์ชันสลับหน้า
+function switchTab(tab) {
+  document.getElementById('missions-view').style.display = tab === 'missions' ? 'block' : 'none';
+  document.getElementById('stats-view').style.display = tab === 'stats' ? 'block' : 'none';
+  document.getElementById('nav-missions').classList.toggle('active', tab === 'missions');
+  document.getElementById('nav-stats').classList.toggle('active', tab === 'stats');
+  if(tab === 'stats') loadStats();
+}
+
 const RULES=[
  {id:'shower',n:'อาบน้ำก่อน 21:40 น.',t:'daily',f:{tai:5,beb:15}},
  {id:'sleep', n:'นอนก่อน 24:00 น.',   t:'daily',f:{tai:5,beb:10}},
@@ -158,7 +211,7 @@ const blank=()=>({tai:mk(),beb:mk()});
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 
 const ymEl=document.getElementById('ym');
-const now=new Date();
+const now = new Date();
 const localMonth=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
 ymEl.value=localMonth;
 let P='tai', S=blank();
@@ -174,7 +227,6 @@ function load(){
   try {
     const raw = localStorage.getItem(key());
     const parsed = raw ? JSON.parse(raw) : null;
-    if (parsed && parsed.tai && parsed.ben) return { tai: norm(parsed.tai), beb: norm(parsed.ben) };
     if (parsed && parsed.tai && parsed.beb) return { tai: norm(parsed.tai), beb: norm(parsed.beb) };
   } catch (e) {}
   return blank();
@@ -193,19 +245,16 @@ function listenForUpdates() {
         const data = snapshot.val();
         if (data) {
           S = {
-            tai: norm(data.tai || data.tai || {}),
-            beb: norm(data.beb || data.beb || {})
+            tai: norm(data.tai || {}),
+            beb: norm(data.beb || {})
           };
         } else {
           S = load();
         }
         render();
-      });
-      return;
+      }, { onlyOnce: false }); // โหลดอัปเดตเรียลไทม์เสมอ
     } catch (e) {}
   }
-  S = load();
-  render();
 }
 
 ymEl.onchange=()=>{
@@ -260,7 +309,7 @@ function fines(p){
 }
 function sameMonthEvt(x){return sameMonth(x.date)}
 
-/* ---------- แสดงผล ---------- */
+/* ---------- แสดงผลภารกิจ ---------- */
 function render(){
   const s=S[P],F=fines(P),D=dim(),TD=todayD();let h='';
   RULES.forEach(R=>{
@@ -277,7 +326,7 @@ function render(){
       }
       h+='</div>';
       const ns=[];for(let d=1;d<=D;d++){const c=s[R.id][d];if(c&&c.note)ns.push(d+' '+(c.v==='skip'?'🚫':c.v==='no'?'❌':'✅')+' '+esc(c.note))}
-      if(ns.length)h+='<div class="notes">❗️หมายเหตุ: '+ns.join(' • ')+'</div>';
+      if(ns.length)h+='<div class="notes">📝 '+ns.join(' • ')+'</div>';
       h+='<div class="sub">แตะ: – → ✅ → ❌ → 🚫 ยกเว้น เพื่อใส่หมายเหตุ , วันที่ยังไม่กด = ไม่คิดเงิน</div>';
     } else {
       const ph=R.id==='sweet'?'เช่น โรตี, เค้ก, มันฝรั่งทอด':R.id==='drink'?'เช่น ชาไข่มุก':R.id==='exercise'?'เช่น วิ่ง 20 นาที':'เช่น ผัดผักรวม';
@@ -299,7 +348,7 @@ function render(){
         const ex=s.exMonth.veggie!==undefined;
         h+='<div class="wk"><span>'+(ex?'🚫 ยกเว้นเป้าเดือนนี้'+(s.exMonth.veggie?' — '+esc(s.exMonth.veggie):''):'นับตามปกติ')+'</span>'+
            '<button class="mini" onclick="exMonth()">'+(ex?'ยกเลิกยกเว้น':'ยกเว้นเดือนนี้')+'</button></div>';
-        if(F[R.id].pend)h+='<div class="warn">⏳ หากจบเดือนยังไม่ครบ จะโดนปรับ '+F[R.id].pend+' ฿</div>';
+        if(F[R.id].pend)h+='<div class="warn">⏳ ถ้าจบเดือนยังไม่ครบ จะโดนปรับ '+F[R.id].pend+' ฿</div>';
       }
     }
     h+='</div>';
@@ -354,8 +403,84 @@ function expJSON(){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='our-rules-'+ymEl.value+'.json';a.click();
 }
+
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));b.classList.add('on');P=b.dataset.p;render()});
+
+/* ---------- แสดงผลสถิติและกราฟ ---------- */
+let chartInstance = null;
+function loadStats() {
+  if (window.dbOnValue && window.db && window.dbRef) {
+    window.dbOnValue(window.dbRef(window.db, 'ourrules/'), (snapshot) => {
+      const allData = snapshot.val() || {};
+      processStats(allData);
+    }, { onlyOnce: true }); // ดึงครั้งเดียวตอนกดแท็บสถิติ
+  }
+}
+
+function processStats(allData) {
+  const months = Object.keys(allData).sort();
+  let totalTai = 0, totalBeb = 0, saveTai = 0, saveBeb = 0;
+  let labels = [], chartTai = [], chartBeb = [];
+
+  // เก็บค่าปัจจุบันไว้สำรอง
+  const currentMStr = ymEl.value;
+  const currentS = JSON.parse(JSON.stringify(S));
+
+  // ลูปประมวลผลค่าปรับแต่ละเดือน
+  months.forEach(m => {
+    const mData = allData[m];
+    ymEl.value = m; // สับหลอกให้คำนวณเดือนเก่า
+    S = { tai: norm(mData.tai), beb: norm(mData.beb) };
+
+    const fTai = fines('tai');
+    const fBeb = fines('beb');
+
+    totalTai += fTai.total;
+    totalBeb += fBeb.total;
+    saveTai += (S.tai.save || 0);
+    saveBeb += (S.beb.save || 0);
+
+    labels.push(m);
+    chartTai.push(fTai.total);
+    chartBeb.push(fBeb.total);
+  });
+
+  // คืนค่ากลับเป็นเดือนปัจจุบัน
+  ymEl.value = currentMStr;
+  S = currentS;
+
+  // แสดงผลตารางรวม
+  let h = '<table><tr><th>รายการ</th><th class="num">น้องต่าย</th><th class="num">พี่เบ้บ</th></tr>';
+  h += '<tr><td>🔥 ยอดปรับรวมทั้งหมด</td><td class="num" style="color:#ef4444;font-weight:900">'+totalTai+' ฿</td><td class="num" style="color:#ef4444;font-weight:900">'+totalBeb+' ฿</td></tr>';
+  h += '<tr><td>💰 ยอดออมเงินรวมทั้งหมด</td><td class="num" style="color:#22a06b;font-weight:900">'+saveTai+' ฿</td><td class="num" style="color:#22a06b;font-weight:900">'+saveBeb+' ฿</td></tr>';
+  h += '</table>';
+  document.getElementById('all-time-summary').innerHTML = h;
+
+  // วาดกราฟ
+  const ctx = document.getElementById('finesChart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'ค่าปรับน้องต่าย (฿)', data: chartTai, backgroundColor: '#5a67f2', borderRadius: 6 },
+        { label: 'ค่าปรับพี่เบ้บ (฿)', data: chartBeb, backgroundColor: '#f59e0b', borderRadius: 6 }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true, grid: { color: '#e5e7f3' } },
+        x: { grid: { display: false } }
+      },
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+}
 
 render();
 </script>
