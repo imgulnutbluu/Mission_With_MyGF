@@ -171,41 +171,51 @@ function norm(o){const b=mk();o=o||{};
     b[k]=out});
   LISTS.forEach(k=>b[k]=(o[k]||[]).map(x=>({date:x.date,note:x.note||'',ex:!!x.ex})));
   b.exWeek=o.exWeek||{};b.exMonth=o.exMonth||{};b.save=o.save||0;return b}
-
-  // ฟังก์ชันบันทึกข้อมูลขึ้น Firebase
+function load(){
+  try {
+    const raw = localStorage.getItem(key());
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (parsed && parsed.tai && parsed.ben) return { tai: norm(parsed.tai), beb: norm(parsed.ben) };
+    if (parsed && parsed.tai && parsed.beb) return { tai: norm(parsed.tai), beb: norm(parsed.beb) };
+  } catch (e) {}
+  return blank();
+}
 function save(){
-  if(window.dbSet && window.db && window.dbRef){
-    window.dbSet(window.dbRef(window.db, 'ourrules/' + ymEl.value), S);
+  try { localStorage.setItem(key(), JSON.stringify(S)); } catch (e) {}
+  if (window.dbSet && window.db && window.dbRef) {
+    try { window.dbSet(window.dbRef(window.db, 'ourrules/' + ymEl.value), S); } catch (e) {}
   }
 }
-
-// ฟังก์ชันโหลดข้อมูลและรอรับการอัปเดตแบบเรียลไทม์
 function listenForUpdates() {
-  if(window.dbOnValue && window.db && window.dbRef){
-    const monthRef = window.dbRef(window.db, 'ourrules/' + ymEl.value);
-    window.dbOnValue(monthRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        S = { tai: norm(data.tai), beb: norm(data.beb) };
-      } else {
-        S = blank(); // ถ้าไม่มีข้อมูลในเดือนนั้นให้เริ่มใหม่
-      }
-      render(); // สั่งให้อัปเดตหน้าจอทันทีเมื่อข้อมูลเปลี่ยน
-    });
+  if (window.dbOnValue && window.db && window.dbRef) {
+    try {
+      const monthRef = window.dbRef(window.db, 'ourrules/' + ymEl.value);
+      window.dbOnValue(monthRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          S = {
+            tai: norm(data.tai || data.tai || {}),
+            beb: norm(data.beb || data.beb || {})
+          };
+        } else {
+          S = load();
+        }
+        render();
+      });
+      return;
+    } catch (e) {}
   }
+  S = load();
+  render();
 }
 
-// ผูกการทำงานตอนเปลี่ยนเดือน
 ymEl.onchange=()=>{
-  S = blank(); 
+  S = load();
   render();
-  listenForUpdates(); // ดึงข้อมูลเดือนใหม่
+  listenForUpdates();
 };
 
-// เรียกใช้งานครั้งแรกตอนโหลดหน้าเว็บ
-setTimeout(() => {
-  listenForUpdates();
-}, 500); // ดีเลย์เล็กน้อยรอให้ Firebase โหลดเสร็จ
+setTimeout(() => { S = load(); render(); listenForUpdates(); }, 300);
 
 function ymParts(){const[a,b]=ymEl.value.split('-');return[+a,+b]}
 function dim(){const[y,m]=ymParts();return new Date(y,m,0).getDate()}
@@ -332,11 +342,11 @@ function exMonth(){const m=S[P].exMonth;
   if(m.veggie!==undefined)delete m.veggie;else{const n=prompt('เหตุผลที่ยกเว้นเป้ากินผักเดือนนี้','');if(n===null)return;m.veggie=n}
   save();render()}
 function summary(){
-  const A=fines('tai'),B=fines('beb');
+  const A=fines('tai'),B=fines('ben');
   let h='<table><tr><th>กติกา</th><th class="num">น้องต่าย</th><th class="num">พี่เบ้บ</th></tr>';
   RULES.forEach(R=>{h+='<tr><td>'+R.n+'</td><td class="num">'+A[R.id].amt+' ฿</td><td class="num">'+B[R.id].amt+' ฿</td></tr>'});
   h+='<tr class="total"><td>TOTAL</td><td class="num">'+A.total+' ฿</td><td class="num">'+B.total+' ฿</td></tr></table>';
-  h+='<div class="sub">รวมทั้งคู่ <b>'+(A.total+B.total)+' ฿</b> • ออมเงิน ต่าย '+(S.tai.save||0)+' ฿ / เบ้บ '+(S.beb.save||0)+' ฿</div>';
+  h+='<div class="sub">รวมทั้งคู่ <b>'+(A.total+B.total)+' ฿</b> • ออมเงิน ต่าย '+(S.tai.save||0)+' ฿ / เบ้บ '+(S.ben.save||0)+' ฿</div>';
   if(A.pending||B.pending)h+='<div class="warn">⏳ ยอดค้างรอจบเดือน: ต่าย '+A.pending+' ฿ / เบ้บ '+B.pending+' ฿</div>';
   document.getElementById('sum').innerHTML=h;
 }
@@ -347,7 +357,7 @@ function expJSON(){
 }
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));b.classList.add('on');P=b.dataset.p;render()});
-  
+
 render();
 </script>
 </body>
