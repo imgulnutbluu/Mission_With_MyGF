@@ -145,24 +145,24 @@ tr.total td{font-size:18px;font-weight:900;color:#d62b2b;border-top:2px solid #1
 
 <script>
 const RULES=[
- {id:'shower',n:'อาบน้ำก่อน 21:40 น.',t:'daily',f:{tai:5,ben:15}},
- {id:'sleep', n:'นอนก่อน 24:00 น.',   t:'daily',f:{tai:5,ben:10}},
- {id:'water', n:'ดื่มน้ำ 1.7 L/วัน',   t:'daily',f:{tai:10,ben:15}},
- {id:'drink', n:'น้ำหวาน',            t:'quota',q:{tai:4,ben:4},  f:{tai:10,ben:20}},
- {id:'sweet', n:'ขนมหวาน (รวมกรุบกรอบ)',t:'quota',q:{tai:10,ben:6},f:{tai:5,ben:20}},
- {id:'exercise',n:'ออกกำลังกาย 20 นาที',t:'week',per:3,f:{tai:10,ben:20}},
- {id:'veggie',n:'กินผัก',             t:'month',target:3,f:{tai:10,ben:15}}
+ {id:'shower',n:'อาบน้ำก่อน 21:40 น.',t:'daily',f:{tai:5,beb:15}},
+ {id:'sleep', n:'นอนก่อน 24:00 น.',   t:'daily',f:{tai:5,beb:10}},
+ {id:'water', n:'ดื่มน้ำ 1.7 L/วัน',   t:'daily',f:{tai:10,beb:15}},
+ {id:'drink', n:'น้ำหวาน',            t:'quota',q:{tai:4,beb:4},  f:{tai:10,beb:20}},
+ {id:'sweet', n:'ขนมหวาน (รวมกรุบกรอบ)',t:'quota',q:{tai:10,beb:6},f:{tai:5,beb:20}},
+ {id:'exercise',n:'ออกกำลังกาย 20 นาที',t:'week',per:3,f:{tai:10,beb:20}},
+ {id:'veggie',n:'กินผัก',             t:'month',target:3,f:{tai:10,beb:15}}
 ];
 const DAILY=['shower','sleep','water'],LISTS=['drink','sweet','exercise','veggie'];
 const mk=()=>({shower:{},sleep:{},water:{},drink:[],sweet:[],exercise:[],veggie:[],exWeek:{},exMonth:{},save:0});
-const blank=()=>({tai:mk(),ben:mk()});
+const blank=()=>({tai:mk(),beb:mk()});
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 
 const ymEl=document.getElementById('ym');
 const now=new Date();
 const localMonth=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
 ymEl.value=localMonth;
-let P='tai',S=load();
+let P='tai', S=blank();
 
 function key(){return 'ourrules_'+ymEl.value}
 function norm(o){const b=mk();o=o||{};
@@ -186,7 +186,7 @@ function listenForUpdates() {
     window.dbOnValue(monthRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        S = { tai: norm(data.tai), ben: norm(data.ben) };
+        S = { tai: norm(data.tai), beb: norm(data.beb) };
       } else {
         S = blank(); // ถ้าไม่มีข้อมูลในเดือนนั้นให้เริ่มใหม่
       }
@@ -332,12 +332,12 @@ function exMonth(){const m=S[P].exMonth;
   if(m.veggie!==undefined)delete m.veggie;else{const n=prompt('เหตุผลที่ยกเว้นเป้ากินผักเดือนนี้','');if(n===null)return;m.veggie=n}
   save();render()}
 function summary(){
-  const A=fines('tai'),B=fines('ben');
-  let h='<table><tr><th>กติกา</th><th class="num">น้องต่าย</th><th class="num">พี่เบ้น</th></tr>';
+  const A=fines('tai'),B=fines('beb');
+  let h='<table><tr><th>กติกา</th><th class="num">น้องต่าย</th><th class="num">พี่เบ้บ</th></tr>';
   RULES.forEach(R=>{h+='<tr><td>'+R.n+'</td><td class="num">'+A[R.id].amt+' ฿</td><td class="num">'+B[R.id].amt+' ฿</td></tr>'});
   h+='<tr class="total"><td>TOTAL</td><td class="num">'+A.total+' ฿</td><td class="num">'+B.total+' ฿</td></tr></table>';
-  h+='<div class="sub">รวมทั้งคู่ <b>'+(A.total+B.total)+' ฿</b> • ออมเงิน ต่าย '+(S.tai.save||0)+' ฿ / เบ้น '+(S.ben.save||0)+' ฿</div>';
-  if(A.pending||B.pending)h+='<div class="warn">⏳ ยอดค้างรอจบเดือน: ต่าย '+A.pending+' ฿ / เบ้น '+B.pending+' ฿</div>';
+  h+='<div class="sub">รวมทั้งคู่ <b>'+(A.total+B.total)+' ฿</b> • ออมเงิน ต่าย '+(S.tai.save||0)+' ฿ / เบ้บ '+(S.beb.save||0)+' ฿</div>';
+  if(A.pending||B.pending)h+='<div class="warn">⏳ ยอดค้างรอจบเดือน: ต่าย '+A.pending+' ฿ / เบ้บ '+B.pending+' ฿</div>';
   document.getElementById('sum').innerHTML=h;
 }
 function expJSON(){
