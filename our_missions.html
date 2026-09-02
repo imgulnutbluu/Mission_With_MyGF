@@ -125,7 +125,7 @@ tr.total td{font-size:18px;font-weight:900;color:#d62b2b;border-top:2px solid #1
     <div class="row" style="justify-content:center">
       <label>เดือน <input type="month" id="ym"></label>
       <button class="tab on" data-p="tai">น้องต่าย</button>
-      <button class="tab" data-p="ben">พี่เบ้บ</button>
+      <button class="tab" data-p="beb">พี่เบ้บ</button>
     </div>
     <div class="sub center">แตะช่องวันเพื่อวนสถานะ • แตะสองครั้ง (ดับเบิลคลิก) เพื่อใส่/แก้หมายเหตุ</div>
   </div>
@@ -342,11 +342,11 @@ function exMonth(){const m=S[P].exMonth;
   if(m.veggie!==undefined)delete m.veggie;else{const n=prompt('เหตุผลที่ยกเว้นเป้ากินผักเดือนนี้','');if(n===null)return;m.veggie=n}
   save();render()}
 function summary(){
-  const A=fines('tai'),B=fines('ben');
+  const A=fines('tai'),B=fines('beb');
   let h='<table><tr><th>กติกา</th><th class="num">น้องต่าย</th><th class="num">พี่เบ้บ</th></tr>';
   RULES.forEach(R=>{h+='<tr><td>'+R.n+'</td><td class="num">'+A[R.id].amt+' ฿</td><td class="num">'+B[R.id].amt+' ฿</td></tr>'});
   h+='<tr class="total"><td>TOTAL</td><td class="num">'+A.total+' ฿</td><td class="num">'+B.total+' ฿</td></tr></table>';
-  h+='<div class="sub">รวมทั้งคู่ <b>'+(A.total+B.total)+' ฿</b> • ออมเงิน ต่าย '+(S.tai.save||0)+' ฿ / เบ้บ '+(S.ben.save||0)+' ฿</div>';
+  h+='<div class="sub">รวมทั้งคู่ <b>'+(A.total+B.total)+' ฿</b> • ออมเงิน ต่าย '+(S.tai.save||0)+' ฿ / เบ้บ '+(S.beb.save||0)+' ฿</div>';
   if(A.pending||B.pending)h+='<div class="warn">⏳ ยอดค้างรอจบเดือน: ต่าย '+A.pending+' ฿ / เบ้บ '+B.pending+' ฿</div>';
   document.getElementById('sum').innerHTML=h;
 }
