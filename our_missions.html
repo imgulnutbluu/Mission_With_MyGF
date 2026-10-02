@@ -221,7 +221,7 @@ function norm(o){const b=mk();o=o||{};
   DAILY.forEach(k=>{const src=o[k]||{};const out={};
     for(const d in src){const v=src[d];out[d]=(typeof v==='string')?{v:v,note:''}:{v:v.v||'',note:v.note||''}}
     b[k]=out});
-  LISTS.forEach(k=>b[k]=(o[k]||[]).map(x=>({date:x.date,note:x.note||'',ex:!!x.ex})));
+  LISTS.forEach(k=>b[k]=(Array.isArray(o[k]) ? o[k] : Object.values(o[k]||{})).map(x=>({date:x.date,note:x.note||'',ex:!!x.ex})));
   b.exWeek=o.exWeek||{};b.exMonth=o.exMonth||{};b.save=o.save||0;return b}
 function load(){
   try {
