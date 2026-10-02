@@ -217,55 +217,50 @@ ymEl.value=localMonth;
 let P='tai', S=blank();
 
 function key(){return 'ourrules_'+ymEl.value}
+
+// โค้ดที่อัปเกรดให้รองรับข้อมูลทุกรูปแบบ ป้องกันการพัง 100%
 function norm(o) {
   const b = mk();
-  o = o || {};
-  
-  // แก้ไขส่วนของ DAILY
+  if (!o || typeof o !== 'object') return b;
+
   DAILY.forEach(k => {
-    const src = o[k] || {};
+    const src = o[k];
     const out = {};
-    
-    // ตรวจสอบว่าเป็น Object หรือ Array แล้วแปลงให้อ่านค่าได้
-    const srcData = Array.isArray(src) ? src : Object.values(src);
-    
-    // หาก Firebase แปลงเป็น Object ที่มี Key เป็นวันที่ เช่น "1", "2"
-    // เราสามารถวนลูป Object.keys ได้แบบเดิม แต่ต้องดักจับกรณีที่กลายเป็น Array ไปแล้วด้วย
-    if (!Array.isArray(src)) {
-        for (const d in src) {
-            const v = src[d];
-            if (v !== undefined && v !== null) {
-                out[d] = (typeof v === 'string') ? { v: v, note: '' } : { v: v.v || '', note: v.note || '' };
-            }
+    if (src && typeof src === 'object') {
+      for (const d in src) {
+        const v = src[d];
+        if (v !== null && v !== undefined && d !== "0") {
+          out[d] = (typeof v === 'string') ? { v: v, note: '' } : { v: v.v || '', note: v.note || '' };
         }
-    } else {
-        // กรณีที่มันเป็น Array
-        src.forEach((v, idx) => {
-            if (v !== undefined && v !== null) {
-                out[idx] = (typeof v === 'string') ? { v: v, note: '' } : { v: v.v || '', note: v.note || '' };
-            }
-        });
+      }
     }
     b[k] = out;
   });
 
-  // แก้ไขส่วนของ LISTS ให้กรองค่า null ออกก่อน
   LISTS.forEach(k => {
-    const rawList = Array.isArray(o[k]) ? o[k] : Object.values(o[k] || {});
-    b[k] = rawList
-      .filter(x => x !== null && x !== undefined) // กรองข้อมูลที่แหว่งออก
-      .map(x => ({
-        date: x.date,
-        note: x.note || '',
-        ex: !!x.ex
-      }));
+    const src = o[k];
+    const out = [];
+    if (src && typeof src === 'object') {
+      Object.values(src).forEach(x => {
+        if (x && typeof x === 'object' && x.date) {
+          out.push({
+            date: String(x.date),
+            note: String(x.note || ''),
+            ex: !!x.ex
+          });
+        }
+      });
+    }
+    out.sort((a, b) => a.date.localeCompare(b.date));
+    b[k] = out;
   });
 
-  b.exWeek = o.exWeek || {};
-  b.exMonth = o.exMonth || {};
-  b.save = o.save || 0;
+  b.exWeek = (o.exWeek && typeof o.exWeek === 'object') ? o.exWeek : {};
+  b.exMonth = (o.exMonth && typeof o.exMonth === 'object') ? o.exMonth : {};
+  b.save = Number(o.save) || 0;
   return b;
 }
+
 function load(){
   try {
     const raw = localStorage.getItem(key());
@@ -274,12 +269,14 @@ function load(){
   } catch (e) {}
   return blank();
 }
+
 function save(){
   try { localStorage.setItem(key(), JSON.stringify(S)); } catch (e) {}
   if (window.dbSet && window.db && window.dbRef) {
     try { window.dbSet(window.dbRef(window.db, 'ourrules/' + ymEl.value), S); } catch (e) {}
   }
 }
+
 function listenForUpdates() {
   if (window.dbOnValue && window.db && window.dbRef) {
     try {
@@ -287,15 +284,12 @@ function listenForUpdates() {
       window.dbOnValue(monthRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          S = {
-            tai: norm(data.tai || {}),
-            beb: norm(data.beb || {})
-          };
+          S = { tai: norm(data.tai || {}), beb: norm(data.beb || {}) };
         } else {
           S = load();
         }
         render();
-      }, { onlyOnce: false }); // โหลดอัปเดตเรียลไทม์เสมอ
+      }, { onlyOnce: false });
     } catch (e) {}
   }
 }
@@ -319,7 +313,6 @@ function passedDay(){const[y,m]=ymParts(),t=new Date(),ty=t.getFullYear(),tm=t.g
 const sameMonth=s=>s.slice(0,7)===ymEl.value, dnum=s=>+s.slice(8,10);
 const counted=x=>!x.ex&&sameMonth(x.date);
 
-/* ---------- คำนวณ ---------- */
 function weekBlocks(p){
   const list=S[p].exercise,D=dim(),PD=passedDay(),bl=[];let miss=0;
   for(let s=1,i=0;s<=D;s+=7,i++){
@@ -331,6 +324,7 @@ function weekBlocks(p){
   }
   return{miss,bl};
 }
+
 function fines(p){
   const s=S[p],r={},monthOver=passedDay()>=dim();
   RULES.forEach(R=>{
@@ -350,9 +344,9 @@ function fines(p){
   r.pending=RULES.reduce((a,R)=>a+(r[R.id].pend||0),0);
   return r;
 }
+
 function sameMonthEvt(x){return sameMonth(x.date)}
 
-/* ---------- แสดงผลภารกิจ ---------- */
 function render(){
   const s=S[P],F=fines(P),D=dim(),TD=todayD();let h='';
   RULES.forEach(R=>{
@@ -402,6 +396,7 @@ function render(){
   document.getElementById('app').innerHTML=h;
   summary();
 }
+
 function defDate(){const t=new Date(),iso=t.toISOString().slice(0,10);
   return iso.slice(0,7)===ymEl.value?iso:ymEl.value+'-01'}
 function cyc(id,d){
@@ -450,79 +445,81 @@ function expJSON(){
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));b.classList.add('on');P=b.dataset.p;render()});
 
-/* ---------- แสดงผลสถิติและกราฟ ---------- */
+/* ---------- แสดงผลสถิติและกราฟ (อัปเกรดกันพัง 100%) ---------- */
 let chartInstance = null;
 function loadStats() {
   if (window.dbOnValue && window.db && window.dbRef) {
     window.dbOnValue(window.dbRef(window.db, 'ourrules/'), (snapshot) => {
       const allData = snapshot.val() || {};
       processStats(allData);
-    }, { onlyOnce: true }); // ดึงครั้งเดียวตอนกดแท็บสถิติ
+    }, { onlyOnce: true });
   }
 }
 
 function processStats(allData) {
-  const months = Object.keys(allData).sort();
-  let totalTai = 0, totalBeb = 0, saveTai = 0, saveBeb = 0;
-  let labels = [], chartTai = [], chartBeb = [];
+  try {
+    // กรองเอาเฉพาะ key ที่เป็นปี-เดือน (YYYY-MM) ป้องกันข้อมูลขยะหรือ key ประหลาด
+    const months = Object.keys(allData).filter(m => /^\d{4}-\d{2}$/.test(m)).sort();
+    let totalTai = 0, totalBeb = 0, saveTai = 0, saveBeb = 0;
+    let labels = [], chartTai = [], chartBeb = [];
 
-  // เก็บค่าปัจจุบันไว้สำรอง
-  const currentMStr = ymEl.value;
-  const currentS = JSON.parse(JSON.stringify(S));
+    const currentMStr = ymEl.value;
+    const currentSStr = JSON.stringify(S); 
 
-  // ลูปประมวลผลค่าปรับแต่ละเดือน
-  months.forEach(m => {
-    const mData = allData[m];
-    ymEl.value = m; // สับหลอกให้คำนวณเดือนเก่า
-    S = { tai: norm(mData.tai), beb: norm(mData.beb) };
+    months.forEach(m => {
+      const mData = allData[m];
+      if (!mData) return;
+      ymEl.value = m;
+      S = { tai: norm(mData.tai), beb: norm(mData.beb) };
 
-    const fTai = fines('tai');
-    const fBeb = fines('beb');
+      const fTai = fines('tai');
+      const fBeb = fines('beb');
 
-    totalTai += fTai.total;
-    totalBeb += fBeb.total;
-    saveTai += (S.tai.save || 0);
-    saveBeb += (S.beb.save || 0);
+      totalTai += fTai.total || 0;
+      totalBeb += fBeb.total || 0;
+      saveTai += (S.tai.save || 0);
+      saveBeb += (S.beb.save || 0);
 
-    labels.push(m);
-    chartTai.push(fTai.total);
-    chartBeb.push(fBeb.total);
-  });
+      labels.push(m);
+      chartTai.push(fTai.total || 0);
+      chartBeb.push(fBeb.total || 0);
+    });
 
-  // คืนค่ากลับเป็นเดือนปัจจุบัน
-  ymEl.value = currentMStr;
-  S = currentS;
+    ymEl.value = currentMStr;
+    S = JSON.parse(currentSStr);
 
-  // แสดงผลตารางรวม
-  let h = '<table><tr><th>รายการ</th><th class="num">น้องต่าย</th><th class="num">พี่เบ้บ</th></tr>';
-  h += '<tr><td>🔥 ยอดปรับรวมทั้งหมด</td><td class="num" style="color:#ef4444;font-weight:900">'+totalTai+' ฿</td><td class="num" style="color:#ef4444;font-weight:900">'+totalBeb+' ฿</td></tr>';
-  h += '<tr><td>💰 ยอดออมเงินรวมทั้งหมด</td><td class="num" style="color:#22a06b;font-weight:900">'+saveTai+' ฿</td><td class="num" style="color:#22a06b;font-weight:900">'+saveBeb+' ฿</td></tr>';
-  h += '</table>';
-  document.getElementById('all-time-summary').innerHTML = h;
+    let h = '<table><tr><th>รายการ</th><th class="num">น้องต่าย</th><th class="num">พี่เบ้บ</th></tr>';
+    h += '<tr><td>🔥 ยอดปรับรวมทั้งหมด</td><td class="num" style="color:#ef4444;font-weight:900">'+totalTai+' ฿</td><td class="num" style="color:#ef4444;font-weight:900">'+totalBeb+' ฿</td></tr>';
+    h += '<tr><td>💰 ยอดออมเงินรวมทั้งหมด</td><td class="num" style="color:#22a06b;font-weight:900">'+saveTai+' ฿</td><td class="num" style="color:#22a06b;font-weight:900">'+saveBeb+' ฿</td></tr>';
+    h += '</table>';
+    
+    document.getElementById('all-time-summary').innerHTML = h;
 
-  // วาดกราฟ
-  const ctx = document.getElementById('finesChart').getContext('2d');
-  if (chartInstance) chartInstance.destroy();
-  chartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [
-        { label: 'ค่าปรับน้องต่าย (฿)', data: chartTai, backgroundColor: '#5a67f2', borderRadius: 6 },
-        { label: 'ค่าปรับพี่เบ้บ (฿)', data: chartBeb, backgroundColor: '#f59e0b', borderRadius: 6 }
-      ]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true, grid: { color: '#e5e7f3' } },
-        x: { grid: { display: false } }
-      },
-      plugins: {
-        legend: { position: 'bottom' }
-      }
+    const canvasEl = document.getElementById('finesChart');
+    if(canvasEl) {
+      const ctx = canvasEl.getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            { label: 'ค่าปรับน้องต่าย (฿)', data: chartTai, backgroundColor: '#5a67f2', borderRadius: 6 },
+            { label: 'ค่าปรับพี่เบ้บ (฿)', data: chartBeb, backgroundColor: '#f59e0b', borderRadius: 6 }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: { y: { beginAtZero: true, grid: { color: '#e5e7f3' } }, x: { grid: { display: false } } },
+          plugins: { legend: { position: 'bottom' } }
+        }
+      });
     }
-  });
+  } catch (error) {
+    // ถ้าโค้ดพัง จะไม่ค้างที่ "กำลังโหลด..." แต่จะแสดง Error นี้ขึ้นมาแทนให้ทราบปัญหา
+    console.error("Stats Error:", error);
+    document.getElementById('all-time-summary').innerHTML = '<div style="color:red; font-weight:bold; padding: 10px; border: 1px solid red; border-radius: 8px; text-align: left;">เกิดข้อผิดพลาดในการโหลดสถิติ:<br>' + error.message + '</div>';
+  }
 }
 
 render();
