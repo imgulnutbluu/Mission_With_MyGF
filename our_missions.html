@@ -217,12 +217,52 @@ ymEl.value=localMonth;
 let P='tai', S=blank();
 
 function key(){return 'ourrules_'+ymEl.value}
-function norm(o){const b=mk();o=o||{};
-  DAILY.forEach(k=>{const src=o[k]||{};const out={};
-    for(const d in src){const v=src[d];out[d]=(typeof v==='string')?{v:v,note:''}:{v:v.v||'',note:v.note||''}}
-    b[k]=out});
-  LISTS.forEach(k=>b[k]=(Array.isArray(o[k]) ? o[k] : Object.values(o[k]||{})).map(x=>({date:x.date,note:x.note||'',ex:!!x.ex})));
-  b.exWeek=o.exWeek||{};b.exMonth=o.exMonth||{};b.save=o.save||0;return b}
+function norm(o) {
+  const b = mk();
+  o = o || {};
+  
+  // แก้ไขส่วนของ DAILY
+  DAILY.forEach(k => {
+    const src = o[k] || {};
+    const out = {};
+    
+    // ตรวจสอบว่าเป็น Object หรือ Array แล้วแปลงให้อ่านค่าได้
+    const srcData = Array.isArray(src) ? src : Object.values(src);
+    
+    // หาก Firebase แปลงเป็น Object ที่มี Key เป็นวันที่ เช่น "1", "2"
+    // เราสามารถวนลูป Object.keys ได้แบบเดิม แต่ต้องดักจับกรณีที่กลายเป็น Array ไปแล้วด้วย
+    if (!Array.isArray(src)) {
+        for (const d in src) {
+            const v = src[d];
+            if (v !== undefined && v !== null) {
+                out[d] = (typeof v === 'string') ? { v: v, note: '' } : { v: v.v || '', note: v.note || '' };
+            }
+        }
+    } else {
+        // กรณีที่มันเป็น Array
+        src.forEach((v, idx) => {
+            if (v !== undefined && v !== null) {
+                out[idx] = (typeof v === 'string') ? { v: v, note: '' } : { v: v.v || '', note: v.note || '' };
+            }
+        });
+    }
+    b[k] = out;
+  });
+
+  // แก้ไขส่วนของ LISTS ที่แก้ไปแล้ว
+  LISTS.forEach(k => 
+    b[k] = (Array.isArray(o[k]) ? o[k] : Object.values(o[k]||{})).map(x => ({
+      date: x.date,
+      note: x.note || '',
+      ex: !!x.ex
+    }))
+  );
+
+  b.exWeek = o.exWeek || {};
+  b.exMonth = o.exMonth || {};
+  b.save = o.save || 0;
+  return b;
+}
 function load(){
   try {
     const raw = localStorage.getItem(key());
