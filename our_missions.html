@@ -249,14 +249,17 @@ function norm(o) {
     b[k] = out;
   });
 
-  // แก้ไขส่วนของ LISTS ที่แก้ไปแล้ว
-  LISTS.forEach(k => 
-    b[k] = (Array.isArray(o[k]) ? o[k] : Object.values(o[k]||{})).map(x => ({
-      date: x.date,
-      note: x.note || '',
-      ex: !!x.ex
-    }))
-  );
+  // แก้ไขส่วนของ LISTS ให้กรองค่า null ออกก่อน
+  LISTS.forEach(k => {
+    const rawList = Array.isArray(o[k]) ? o[k] : Object.values(o[k] || {});
+    b[k] = rawList
+      .filter(x => x !== null && x !== undefined) // กรองข้อมูลที่แหว่งออก
+      .map(x => ({
+        date: x.date,
+        note: x.note || '',
+        ex: !!x.ex
+      }));
+  });
 
   b.exWeek = o.exWeek || {};
   b.exMonth = o.exMonth || {};
