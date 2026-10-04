@@ -203,10 +203,11 @@ const RULES=[
  {id:'drink', n:'น้ำหวาน',            t:'quota',q:{tai:4,beb:4},  f:{tai:10,beb:20}},
  {id:'sweet', n:'ขนมหวาน (รวมกรุบกรอบ)',t:'quota',q:{tai:10,beb:6},f:{tai:5,beb:20}},
  {id:'exercise',n:'ออกกำลังกาย 20 นาที',t:'week',per:3,f:{tai:10,beb:20}},
- {id:'veggie',n:'กินผัก',             t:'month',target:3,f:{tai:10,beb:15}}
+ {id:'veggie',n:'กินผัก',             t:'month',target:3,f:{tai:10,beb:15}},
+ {id:'latenight',n:'กินมื้อดึก',       t:'quota',q:{tai:15,beb:10},f:{tai:10,beb:15}}
 ];
-const DAILY=['shower','sleep','water'],LISTS=['drink','sweet','exercise','veggie'];
-const mk=()=>({shower:{},sleep:{},water:{},drink:[],sweet:[],exercise:[],veggie:[],exWeek:{},exMonth:{},save:0});
+const DAILY=['shower','sleep','water'],LISTS=['drink','sweet','exercise','veggie','latenight'];
+const mk=()=>({shower:{},sleep:{},water:{},drink:[],sweet:[],exercise:[],veggie:[],latenight:[],exWeek:{},exMonth:{},save:0});
 const blank=()=>({tai:mk(),beb:mk()});
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 
@@ -359,7 +360,7 @@ function render(){
       if(ns.length)h+='<div class="notes">📝 '+ns.join(' • ')+'</div>';
       h+='<div class="sub">แตะ: – → ✅ → ❌ → 🚫 ยกเว้น เพื่อใส่หมายเหตุ , วันที่ยังไม่กด = ไม่คิดเงิน</div>';
     } else {
-      const ph=R.id==='sweet'?'เช่น โรตี, เค้ก, มันฝรั่งทอด':R.id==='drink'?'เช่น ชาไข่มุก':R.id==='exercise'?'เช่น วิ่ง 20 นาที':'เช่น ผัดผักรวม';
+      const ph=R.id==='sweet'?'เช่น โรตี, เค้ก, มันฝรั่งทอด':R.id==='drink'?'เช่น ชาไข่มุก':R.id==='exercise'?'เช่น วิ่ง 20 นาที':R.id==='latenight'?'เช่น มาม่าตอนเที่ยงคืน':'เช่น ผัดผักรวม';
       h+='<div class="row"><input type="date" id="d_'+R.id+'" value="'+defDate()+'"><input id="n_'+R.id+'" placeholder="'+ph+'" style="flex:1;min-width:170px"><button class="add" onclick="addE(\''+R.id+'\')">+ เพิ่ม</button></div><ul>';
       s[R.id].forEach((x,i)=>{
         h+='<li class="'+(x.ex?'ex':'')+'"><span>'+x.date+' — '+esc(x.note||'-')+(x.ex?' 🚫 ไม่นับ':'')+'</span><span><button class="mini" onclick="toggleEx(\''+R.id+'\','+i+')">'+(x.ex?'นับ':'ยกเว้น')+'</button> <button class="mini" onclick="editE(\''+R.id+'\','+i+')">✎</button> <button class="del" onclick="delE(\''+R.id+'\','+i+')">ลบ</button></span></li>';
